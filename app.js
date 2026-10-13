@@ -608,3 +608,17 @@ expenseForm.addEventListener("keydown", (event) => {
 });
 
 document.querySelector("#export-button").addEventListener("click", exportMonth);
+window.addEventListener("storage", (event) => {
+  if (event.storageArea !== localStorage) return;
+  // event.key is null when localStorage was cleared entirely
+  if (event.key !== null && event.key !== STORAGE_KEY) return;
+
+  state = loadState();
+  currencySelect.value = state.currency;
+
+  if (editingId && !state.expenses.some((expense) => expense.id === editingId)) {
+    stopEditing();
+    showToast("The expense you were editing was removed in another tab.");
+  }
+  render();
+});
