@@ -35,8 +35,10 @@ const expenseForm = document.querySelector("#expense-form");
 const expenseRows = document.querySelector("#expense-rows");
 const toast = document.querySelector("#toast");
 const formMessage = document.querySelector("#form-message");
+const cancelEditButton = document.querySelector("#cancel-edit");
 let state = loadState();
 let toastTimeout;
+let editingId = null;
 
 function currentMonth() {
   const now = new Date();
@@ -237,12 +239,13 @@ function render() {
   expenseRows.replaceChildren();
   for (const expense of expenses) {
     const row = document.createElement("tr");
+    row.classList.toggle("editing", expense.id === editingId);
     row.innerHTML = `
       <td>${escapeXml(expense.name)}</td>
       <td><span class="expense-category"><span aria-hidden="true">${CATEGORY_ICONS[expense.category] || "✦"}</span>${escapeXml(expense.category)}</span></td>
       <td>${formatDate(expense.date)}</td>
       <td class="amount-cell">${formatMoney(expense.amount)}</td>
-      <td class="action-cell"><button class="delete-button" type="button" data-delete-id="${escapeXml(expense.id)}" aria-label="Delete ${escapeXml(expense.name)}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button></td>`;
+      <td class="action-cell"><button class="edit-button" type="button" data-edit-id="${escapeXml(expense.id)}" aria-label="Edit ${escapeXml(expense.name)}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 6 4 4M4.5 19.5l1-4.5L15.3 5.2a1.8 1.8 0 0 1 2.5 0l1 1a1.8 1.8 0 0 1 0 2.5L9 18.5l-4.5 1Z" /></svg></button><button class="delete-button" type="button" data-delete-id="${escapeXml(expense.id)}" aria-label="Delete ${escapeXml(expense.name)}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button></td>`;
     expenseRows.append(row);
   }
 
@@ -278,6 +281,36 @@ function showToast(message) {
   toast.classList.add("visible");
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => toast.classList.remove("visible"), 2800);
+}
+
+function editButtonFor(id) {
+  return [...expenseRows.querySelectorAll("[data-edit-id]")].find((button) => button.dataset.editId === id);
+}
+
+function startEditing(expense) {
+  editingId = expense.id;
+  document.querySelector("#expense-name").value = expense.name;
+  document.querySelector("#expense-amount").value = expense.amount.toFixed(2);
+  document.querySelector("#expense-date").value = expense.date;
+  document.querySelector("#expense-category").value = expense.category;
+  document.querySelector("#form-kicker").textContent = "FIX A DETAIL";
+  document.querySelector("#form-heading").textContent = "Edit expense";
+  document.querySelector("#submit-label").textContent = "Save changes";
+  cancelEditButton.hidden = false;
+  formMessage.textContent = "";
+  render();
+  document.querySelector("#expense-name").focus();
+}
+
+function stopEditing() {
+  editingId = null;
+  expenseForm.reset();
+  document.querySelector("#expense-date").value = defaultExpenseDate();
+  document.querySelector("#form-kicker").textContent = "KEEP A DAILY NOTE";
+  document.querySelector("#form-heading").textContent = "Add an expense";
+  document.querySelector("#submit-label").textContent = "Add expense";
+  cancelEditButton.hidden = true;
+  formMessage.textContent = "";
 }
 
 function setCell(cellReference, value, type = "string") {
@@ -445,6 +478,7 @@ document.querySelector("#expense-date").value = defaultExpenseDate();
 render();
 
 monthPicker.addEventListener("change", () => {
+  if (editingId) stopEditing();
   document.querySelector("#expense-date").value = defaultExpenseDate();
   render();
 });
@@ -497,6 +531,29 @@ expenseForm.addEventListener("submit", (event) => {
     formMessage.textContent = "Add a description, a positive amount, and a valid date.";
     return;
   }
+  if (editingId) {
+    const index = state.expenses.findIndex((expense) => expense.id === editingId);
+    if (index < 0) {
+      stopEditing();
+      render();
+      showToast("That expense no longer exists.");
+      return;
+    }
+    const previous = state.expenses[index];
+    state.expenses[index] = { ...previous, name, amount: Math.round(amount * 100) / 100, category, date };
+    if (!saveState()) {
+      state.expenses[index] = previous;
+      return;
+    }
+    const editedId = editingId;
+    stopEditing();
+    render();
+    showToast(date.startsWith(`${monthPicker.value}-`)
+      ? "Expense updated."
+      : `Expense updated and moved to ${formatMonth(date.slice(0, 7))}.`);
+    (editButtonFor(editedId) || document.querySelector("#expense-name")).focus();
+    return;
+  }
   const expense = {
     id: crypto.randomUUID(),
     name,
@@ -519,6 +576,12 @@ expenseForm.addEventListener("submit", (event) => {
 });
 
 expenseRows.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-id]");
+  if (editButton) {
+    const expense = state.expenses.find((item) => item.id === editButton.dataset.editId);
+    if (expense) startEditing(expense);
+    return;
+  }
   const button = event.target.closest("[data-delete-id]");
   if (!button) return;
   const index = state.expenses.findIndex((expense) => expense.id === button.dataset.deleteId);
@@ -528,8 +591,20 @@ expenseRows.addEventListener("click", (event) => {
     state.expenses.splice(index, 0, removed);
     return;
   }
+  if (removed.id === editingId) stopEditing();
   render();
   showToast("Expense removed.");
+});
+
+cancelEditButton.addEventListener("click", () => {
+  const editedId = editingId;
+  stopEditing();
+  render();
+  (editButtonFor(editedId) || document.querySelector("#expense-name")).focus();
+});
+
+expenseForm.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && editingId) cancelEditButton.click();
 });
 
 document.querySelector("#export-button").addEventListener("click", exportMonth);
