@@ -139,7 +139,11 @@ h2 { color: #353a33; font-family: Manrope, sans-serif; font-size: 15px; font-wei
 .select-wrap { position: relative; }
 .select-wrap > svg { position: absolute; top: 10px; right: 10px; width: 14px; height: 14px; pointer-events: none; stroke: #989c91; stroke-width: 1.5; }
 .category-select { appearance: none; padding-right: 30px; }
-.add-button { width: 100%; height: 36px; margin-top: 1px; }
+.form-actions { display: flex; gap: 8px; margin-top: 1px; }
+.add-button { width: 100%; height: 36px; }
+.cancel-button { flex: none; height: 36px; padding: 0 14px; color: #5a6057; background: #fff; border: 1px solid #e9e8e2; border-radius: 7px; font-size: 11px; font-weight: 600; transition: background .18s; }
+.cancel-button:hover { background: #f7f8f5; }
+.cancel-button[hidden] { display: none; }
 .form-message { min-height: 13px; margin-top: 6px; color: #b66850; font-size: 9px; }
 .activity-panel { display: flex; flex-direction: column; }
 .category-list { display: flex; flex-direction: column; gap: 13px; margin-top: 19px; }
@@ -164,11 +168,14 @@ h2 { color: #353a33; font-family: Manrope, sans-serif; font-size: 15px; font-wei
 .expense-table td:first-child { color: #42473f; font-weight: 600; }
 .expense-table .amount-column, .expense-table td.amount-cell { text-align: right; }
 .expense-table td.amount-cell { color: #40463d; font-weight: 600; }
-.expense-table td.action-cell { width: 38px; padding-right: 14px; padding-left: 3px; text-align: right; }
+.expense-table td.action-cell { width: 66px; padding-right: 14px; padding-left: 3px; text-align: right; }
+.expense-table tr.editing td { background: #f7f9f5; }
 .expense-category { display: inline-flex; align-items: center; gap: 5px; }
-.delete-button { width: 25px; height: 25px; padding: 5px; color: #a3a69d; background: transparent; border: 0; border-radius: 5px; }
+.edit-button, .delete-button { width: 25px; height: 25px; padding: 5px; color: #a3a69d; background: transparent; border: 0; border-radius: 5px; }
+.edit-button + .delete-button { margin-left: 2px; }
+.edit-button:hover { color: var(--green); background: #eef2ed; }
 .delete-button:hover { color: #af6551; background: #fbf0ec; }
-.delete-button svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.edit-button svg, .delete-button svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .expenses-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 28px 10px 32px; color: #a0a398; font-size: 10px; }
 .expenses-empty[hidden], .category-empty[hidden] { display: none; }
 .expenses-empty strong { margin-top: 2px; color: #666b61; font-size: 11px; font-weight: 600; }

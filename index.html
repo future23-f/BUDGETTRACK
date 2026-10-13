@@ -162,8 +162,8 @@
             <article class="panel transaction-panel" id="transactions">
               <div class="panel-heading">
                 <div>
-                  <span class="section-kicker">KEEP A DAILY NOTE</span>
-                  <h2>Add an expense</h2>
+                  <span class="section-kicker" id="form-kicker">KEEP A DAILY NOTE</span>
+                  <h2 id="form-heading">Add an expense</h2>
                 </div>
                 <span class="heading-sparkle" aria-hidden="true">✳</span>
               </div>
@@ -200,10 +200,13 @@
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
                 </div>
 
-                <button class="add-button" type="submit">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-                  Add expense
-                </button>
+                <div class="form-actions">
+                  <button class="add-button" type="submit">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                    <span id="submit-label">Add expense</span>
+                  </button>
+                  <button class="cancel-button" id="cancel-edit" type="button" hidden>Cancel</button>
+                </div>
                 <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
               </form>
             </article>
