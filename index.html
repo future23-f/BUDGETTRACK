@@ -24,11 +24,15 @@
         </a>
 
         <div class="nav-label">WORKSPACE</div>
-        <a class="nav-item active" href="#overview" aria-current="page">
+        <a class="nav-item active" href="#overview" data-page-target="overview" aria-current="page">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" /></svg>
-          Overview
+          Dashboard
         </a>
-        <a class="nav-item" href="#transactions">
+        <a class="nav-item" href="#plan" data-page-target="plan">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h8M8 12h5M8 16h8" /></svg>
+          Plan budget
+        </a>
+        <a class="nav-item" href="#transactions" data-page-scroll="transactions">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /><circle cx="3.5" cy="7" r=".5" fill="currentColor" /><circle cx="3.5" cy="12" r=".5" fill="currentColor" /><circle cx="3.5" cy="17" r=".5" fill="currentColor" /></svg>
           Transactions
         </a>
@@ -47,7 +51,7 @@
 
       <main class="main-content">
         <header class="topbar">
-          <div class="breadcrumb"><span>Personal finance</span><span class="breadcrumb-separator">/</span><strong>Overview</strong></div>
+          <div class="breadcrumb"><span>Personal finance</span><span class="breadcrumb-separator">/</span><strong id="current-page-title">Dashboard</strong></div>
           <div class="topbar-actions">
             <label class="currency-control">
               <span class="visually-hidden">Currency</span>
@@ -81,7 +85,18 @@
             </label>
           </section>
 
-          <section class="summary-grid" aria-label="Monthly budget summary">
+          <section class="plan-period-picker" aria-label="Choose your budget plan">
+            <div class="plan-period-copy">
+              <span class="section-kicker">PLAN AHEAD</span>
+              <p>Set a spending budget, then track both.</p>
+            </div>
+            <div class="plan-period-switch" role="group" aria-label="Plan by month or week">
+              <button type="button" data-plan-period="month" aria-pressed="true">Month</button>
+              <button type="button" data-plan-period="week" aria-pressed="false">Week</button>
+            </div>
+          </section>
+
+          <section class="summary-grid" id="monthly-plan" aria-label="Monthly budget summary">
             <article class="summary-card spent-card">
               <div class="card-topline">
                 <span class="card-label">Total spent</span>
@@ -95,16 +110,15 @@
 
             <article class="summary-card budget-card">
               <div class="card-topline">
-                <label class="card-label" for="budget-input">Monthly budget</label>
+                <span class="card-label">Monthly budget</span>
                 <span class="card-icon budget-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="M3.5 9.5h17M7 14h3" /></svg>
                 </span>
               </div>
               <div class="budget-edit">
-                <span class="currency-prefix" id="budget-currency">€</span>
-                <input id="budget-input" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Monthly budget amount" placeholder="Set a budget" />
+                <span class="summary-amount budget-summary-amount" id="month-budget-amount">€0.00</span>
               </div>
-              <div class="card-footnote">Your spending plan for this month</div>
+              <a class="plan-link" href="#plan" data-page-target="plan">Edit in budget plan</a>
             </article>
 
             <article class="summary-card remaining-card">
@@ -120,9 +134,34 @@
               </div>
               <div class="card-footnote" id="budget-progress-label">Set a budget to track your progress</div>
             </article>
+            <article class="summary-card savings-card">
+              <div class="card-topline">
+                <span class="card-label">Savings</span>
+                <span class="card-icon savings-icon" aria-hidden="true">↗</span>
+              </div>
+              <div class="summary-amount" id="month-saved-amount">€0.00</div>
+              <div class="card-footnote" id="month-saving-count">No savings this month</div>
+              <form class="saving-entry-form" id="month-saving-form">
+                <label class="visually-hidden" for="month-saving-amount">Saving amount for this month</label>
+                <div class="saving-entry-fields">
+                  <div class="amount-input-wrap">
+                    <span class="saving-currency">€</span>
+                    <input id="month-saving-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Amount" required />
+                  </div>
+                  <label class="visually-hidden" for="month-saving-category">Saving category for this month</label>
+                  <div class="select-wrap">
+                    <select class="text-input category-select" id="month-saving-category" required aria-label="Saving category for this month">
+                      <option value="">Category</option>
+                    </select>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+                  </div>
+                </div>
+                <button class="saving-entry-button" type="submit">Add saving</button>
+              </form>
+            </article>
           </section>
 
-          <section class="panel weekly-panel" aria-labelledby="weekly-heading">
+          <section class="panel weekly-panel" id="weekly-plan" aria-labelledby="weekly-heading" hidden>
             <div class="panel-heading weekly-heading">
               <div>
                 <span class="section-kicker">A SHORTER-TERM PLAN</span>
@@ -136,11 +175,11 @@
             </div>
             <div class="weekly-summary-grid">
               <article class="weekly-stat">
-                <label class="card-label" for="week-budget-input">Budget for this week</label>
+                <span class="card-label">Budget for this week</span>
                 <div class="budget-edit">
-                  <span class="currency-prefix" id="week-budget-currency">€</span>
-                  <input id="week-budget-input" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Weekly budget amount" placeholder="Set a budget" />
+                  <span class="summary-amount budget-summary-amount" id="week-budget-amount">€0.00</span>
                 </div>
+                <a class="plan-link" href="#plan" data-page-target="plan">Edit in budget plan</a>
               </article>
               <article class="weekly-stat">
                 <span class="card-label">Spent this week</span>
@@ -155,6 +194,28 @@
                 </div>
                 <div class="card-footnote" id="week-budget-progress-label">Set a budget to track your progress</div>
               </article>
+              <article class="weekly-stat weekly-savings">
+                <span class="card-label">Savings</span>
+                <div class="summary-amount" id="week-saved-amount">€0.00</div>
+                <div class="card-footnote" id="week-saving-count">No savings this week</div>
+                <form class="saving-entry-form" id="week-saving-form">
+                  <label class="visually-hidden" for="week-saving-amount">Saving amount for this week</label>
+                  <div class="saving-entry-fields">
+                    <div class="amount-input-wrap">
+                      <span class="saving-currency">€</span>
+                      <input id="week-saving-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Amount" required />
+                    </div>
+                    <label class="visually-hidden" for="week-saving-category">Saving category for this week</label>
+                    <div class="select-wrap">
+                      <select class="text-input category-select" id="week-saving-category" required aria-label="Saving category for this week">
+                        <option value="">Category</option>
+                      </select>
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+                    </div>
+                  </div>
+                  <button class="saving-entry-button" type="submit">Add saving</button>
+                </form>
+              </article>
             </div>
           </section>
 
@@ -163,13 +224,22 @@
               <div class="panel-heading">
                 <div>
                   <span class="section-kicker" id="form-kicker">KEEP A DAILY NOTE</span>
-                  <h2 id="form-heading">Add an expense</h2>
+                  <h2 id="form-heading">Add a transaction</h2>
                 </div>
                 <span class="heading-sparkle" aria-hidden="true">✳</span>
               </div>
               <form id="expense-form">
-                <label class="field-label" for="expense-name">What did you spend on?</label>
-                <input class="text-input" id="expense-name" name="name" maxlength="80" placeholder="e.g. Morning coffee" required />
+                <label class="field-label" for="expense-name">What is this for?</label>
+                <input class="text-input" id="expense-name" name="name" maxlength="80" placeholder="e.g. Groceries or emergency fund" required />
+
+                <label class="field-label" for="transaction-type">Type</label>
+                <div class="select-wrap">
+                  <select class="text-input category-select" id="transaction-type" name="type">
+                    <option value="expense">Expense</option>
+                    <option value="saving">Saving</option>
+                  </select>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+                </div>
 
                 <div class="form-row">
                   <div class="form-field">
@@ -215,15 +285,15 @@
               <div class="activity-heading">
                 <div>
                   <span class="section-kicker">YOUR MONTH, AT A GLANCE</span>
-                  <h2>Spending snapshot</h2>
+                  <h2>Categories snapshot</h2>
                 </div>
               </div>
               <div id="category-list" class="category-list"></div>
               <div id="category-empty" class="category-empty" hidden>
                 <span class="empty-illustration" aria-hidden="true">✳</span>
-                <span>Your spending story starts<br />with the first expense.</span>
+                <span>Your category story starts<br />with your first transaction.</span>
               </div>
-              <div class="snapshot-footer"><span class="footer-dot"></span><span id="snapshot-footer-text">Categories update as you add expenses</span></div>
+              <div class="snapshot-footer"><span class="footer-dot"></span><span id="snapshot-footer-text">Categories update as you add transactions</span></div>
             </article>
           </section>
 
@@ -231,28 +301,79 @@
             <div class="recent-heading">
               <div>
                 <span class="section-kicker">THE LITTLE THINGS ADD UP</span>
-                <h2>Recent expenses</h2>
+                <h2>Recent transactions</h2>
               </div>
               <span class="month-chip" id="transaction-month-label"></span>
             </div>
             <div class="expense-table-wrap">
               <table class="expense-table">
                 <thead>
-                  <tr><th scope="col">EXPENSE</th><th scope="col">CATEGORY</th><th scope="col">DATE</th><th scope="col" class="amount-column">AMOUNT</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+                  <tr><th scope="col">ITEM</th><th scope="col">TYPE</th><th scope="col">CATEGORY</th><th scope="col">DATE</th><th scope="col" class="amount-column">AMOUNT</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
                 </thead>
                 <tbody id="expense-rows"></tbody>
               </table>
               <div id="expenses-empty" class="expenses-empty" hidden>
                 <span class="empty-receipt" aria-hidden="true">☼</span>
                 <strong>A fresh page.</strong>
-                <span>No expenses recorded for this month yet.</span>
+                <span>No transactions recorded for this period yet.</span>
               </div>
             </div>
-            <div class="table-footer"><span id="table-expense-count">0 expenses</span><span>Looking good, one day at a time <span class="footer-heart" aria-hidden="true">♡</span></span></div>
+            <div class="table-footer"><span id="table-expense-count">0 transactions</span><span>Looking good, one day at a time <span class="footer-heart" aria-hidden="true">♡</span></span></div>
           </section>
 
           <footer class="page-footer"><span>Made for the everyday.</span><span>Everything is stored on this device, never in the cloud.</span></footer>
         </div>
+        <section class="page-content planning-page" id="plan-page" hidden aria-labelledby="plan-heading">
+          <div class="welcome-row">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> MAKE A PLAN BEFORE YOU SPEND</div>
+              <h1 id="plan-heading">Preplan your budget.</h1>
+              <p class="page-subtitle">Set a period budget and decide how much to allow for expenses and savings goals.</p>
+            </div>
+          </div>
+          <section class="plan-period-picker" aria-label="Choose a planning period">
+            <div class="plan-period-copy">
+              <span class="section-kicker">PLANNING PERIOD</span>
+              <p>Your plan and dashboard update together.</p>
+            </div>
+            <div class="plan-period-switch" role="group" aria-label="Plan by month or week">
+              <button type="button" data-plan-period="month" aria-pressed="true">Month</button>
+              <button type="button" data-plan-period="week" aria-pressed="false">Week</button>
+            </div>
+          </section>
+          <section class="panel planner-panel">
+            <div class="planner-period-row">
+              <div>
+                <span class="section-kicker">TOTAL BUDGET</span>
+                <h2 id="planner-period-heading">Monthly plan</h2>
+                <p class="week-range" id="planner-period-range"></p>
+              </div>
+              <label class="month-picker planner-month-picker" id="planner-month-control">
+                <span class="visually-hidden">Month to plan</span>
+                <input id="planner-month-picker" type="month" aria-label="Month to plan" />
+              </label>
+              <label class="week-picker" id="planner-week-control" hidden>
+                <span class="visually-hidden">Week to plan</span>
+                <input id="planner-week-picker" type="week" aria-label="Week to plan" />
+              </label>
+            </div>
+            <label class="field-label" for="planner-total-budget">Total budget for this period</label>
+            <div class="planner-total-input">
+              <span class="currency-prefix" id="planner-currency">€</span>
+              <input id="planner-total-budget" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" aria-describedby="planner-total-help" />
+            </div>
+            <p class="planner-help" id="planner-total-help">This total is the limit shown on your dashboard. Expense and savings category plans are included within this total.</p>
+            <div class="planner-category-heading">
+              <div>
+                <span class="section-kicker">BUDGET ALLOCATION</span>
+                <h2>Plan by category</h2>
+              </div>
+              <span id="planner-allocation-total" class="planner-allocation-total"></span>
+            </div>
+            <div class="planner-category-list" id="planner-category-list"></div>
+          </section>
+          <footer class="page-footer"><span>Plans are saved on this device.</span><span>Actual spending and savings update your dashboard and category progress.</span></footer>
+        </section>
       </main>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
